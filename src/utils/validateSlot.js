@@ -1,5 +1,4 @@
-
-const validateSlot = (appointment_time) => {
+const validateSlot = (appointment_time, now = new Date()) => {
     if (typeof appointment_time !== "string") {
         return "Invalid appointment date";
     }
@@ -27,7 +26,7 @@ const validateSlot = (appointment_time) => {
         return "Invalid appointment date";
     }
 
-    if (date <= new Date()) {
+    if (date <= now) {
         return "Appointment must be in the future";
     }
 
