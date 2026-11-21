@@ -158,3 +158,22 @@ exports.cancel = async (id) => {
         connection.release();
     }
 };
+
+
+exports.isUnavailable = async (doctorId, appointmentTime) => {
+    const date = appointmentTime.slice(0, 10);
+
+    const [rows] = await db.execute(
+        `SELECT COUNT(*) AS daily_total,
+       SUM(appointment_time = ?) AS slot_total
+     FROM appointments
+     WHERE doctor_id = ?
+       AND status = 'booked'
+       AND appointment_time >= ?
+       AND appointment_time < DATE_ADD(?, INTERVAL 1 DAY)`,
+        [appointmentTime, doctorId, date, date]
+    );
+
+    return rows[0].daily_total >= 12 || rows[0].slot_total > 0;
+};
+

@@ -6,6 +6,7 @@ const validateId = require("../middleware/validateId");
 
 router.post("/", controller.bookAppointment);
 router.get("/", controller.getAppointments);
+router.post("/waitlist", controller.joinWaitlist);
 router.patch("/:id/cancel", validateId, controller.cancelAppointment);
 
 module.exports = router;
