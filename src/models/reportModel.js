@@ -25,3 +25,45 @@ exports.getDoctorStats = async () => {
 
     return rows;
 };
+
+
+exports.getDailyReport = async () => {
+  const [rows] = await db.execute(`
+    SELECT
+      d.id AS doctor_id,
+      d.name AS doctor,
+      DATE(a.appointment_time) AS appointment_date,
+      COUNT(*) AS total_appointments,
+      ROUND(COUNT(*) / 12 * 100, 2) AS utilization_percent
+    FROM appointments a
+    JOIN doctors d ON a.doctor_id = d.id
+    WHERE a.status = 'booked'
+      AND a.appointment_time >= DATE(UTC_TIMESTAMP() + INTERVAL 2 HOUR)
+      AND a.appointment_time < DATE(UTC_TIMESTAMP() + INTERVAL 2 HOUR)
+          + INTERVAL 7 DAY
+    GROUP BY d.id, d.name, DATE(a.appointment_time)
+    ORDER BY appointment_date, d.name
+  `);
+
+  return rows;
+};
+
+exports.getBusyDays = async () => {
+  const [rows] = await db.execute(`
+    SELECT
+      d.id AS doctor_id,
+      d.name AS doctor,
+      DATE(a.appointment_time) AS appointment_date,
+      COUNT(*) AS total_appointments,
+      ROUND(COUNT(*) / 12 * 100, 2) AS utilization_percent
+    FROM appointments a
+    JOIN doctors d ON a.doctor_id = d.id
+    WHERE a.status = 'booked'
+    GROUP BY d.id, d.name, DATE(a.appointment_time)
+    HAVING COUNT(*) > 12 * 0.80
+    ORDER BY appointment_date, d.name
+  `);
+
+  return rows;
+};
+
