@@ -177,3 +177,19 @@ exports.isUnavailable = async (doctorId, appointmentTime) => {
     return rows[0].daily_total >= 12 || rows[0].slot_total > 0;
 };
 
+
+exports.hasBooking = async (patientId, doctorId, appointmentTime) => {
+    const [rows] = await db.execute(
+        `SELECT id FROM appointments
+     WHERE patient_id = ?
+       AND doctor_id = ?
+       AND appointment_time = ?
+       AND status = 'booked'
+     LIMIT 1`,
+        [patientId, doctorId, appointmentTime]
+    );
+
+    return rows.length > 0;
+};
+
+
