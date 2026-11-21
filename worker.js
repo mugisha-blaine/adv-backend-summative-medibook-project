@@ -3,6 +3,7 @@ require("dotenv").config();
 const redis = require("./src/config/redis");
 const Appointment = require("./src/models/appointmentModel");
 const auditLogger = require("./src/utils/auditLogger");
+const sendNotification = require("./src/utils/notification");
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -61,6 +62,8 @@ async function processWaitlist(key) {
             doctor_id,
             appointment_time
         });
+        void sendNotification(patient_id, booking.id);
+        
     } catch (error) {
         console.error("Waitlist promotion failed:", error.message);
         // Keep the patient in Redis so promotion can be retried.
