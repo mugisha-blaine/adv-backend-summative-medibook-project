@@ -3,6 +3,7 @@ const Appointment = require("../models/appointmentModel");
 const Patient = require("../models/patientModel");
 const Doctor = require("../models/doctorModel");
 const validateSlot = require("../utils/validateSlot");
+const auditLogger = require("../utils/auditLogger");
 
 exports.bookAppointment = async (req, res, next) => {
     try {
@@ -38,6 +39,13 @@ exports.bookAppointment = async (req, res, next) => {
             doctor.consultation_fee
         );
 
+        void auditLogger("BOOKING_CREATED", {
+            appointment_id: id,
+            patient_id,
+            doctor_id,
+            appointment_time
+        });
+
         res.status(201).json({
             message: "Appointment booked successfully",
             appointment: {
@@ -67,6 +75,11 @@ exports.getAppointments = async (req, res, next) => {
 exports.cancelAppointment = async (req, res, next) => {
     try {
         const result = await Appointment.cancel(req.params.id);
+
+        void auditLogger("APPOINTMENT_CANCELLED", {
+            appointment_id: result.id,
+            refund_amount: result.refund_amount
+        });
 
         res.json({
             message: "Appointment cancelled successfully",
