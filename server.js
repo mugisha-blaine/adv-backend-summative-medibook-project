@@ -7,12 +7,14 @@ const patientRoutes = require("./src/routes/patientRoutes");
 const doctorRoutes = require("./src/routes/doctorRoutes");
 const errorHandler = require("./src/middleware/errorHandler");
 const appointmentRoutes = require("./src/routes/appointmentRoutes");
+const reportRoutes = require("./src/routes/reportRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use("/doctors", doctorRoutes);      
+app.use("/reports", reportRoutes);
 app.use("/patients", patientRoutes);
 app.use("/appointments", appointmentRoutes);
 app.use(errorHandler);
