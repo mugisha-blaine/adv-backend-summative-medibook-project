@@ -6,32 +6,46 @@ const validDoctor = ({ name, specialty, consultation_fee, room }) =>
     typeof specialty === "string" && specialty.trim() &&
     typeof room === "string" && room.trim() &&
     typeof consultation_fee === "number" &&
-    Number.isFinite(consultation_fee) && consultation_fee >= 0;
+    Number.isFinite(consultation_fee) &&
+    consultation_fee >= 0;
 
-exports.createDoctor = async (req, res) => {
+exports.createDoctor = async (req, res, next) => {
     try {
         if (!validDoctor(req.body)) {
             return res.status(400).json({ message: "Invalid doctor details" });
         }
 
         const { name, specialty, consultation_fee, room } = req.body;
-        const id = await Doctor.create(name.trim(), specialty.trim(), consultation_fee, room.trim());
 
-        res.status(201).json({ id, name, specialty, consultation_fee, room });
+        const id = await Doctor.create(
+            name.trim(),
+            specialty.trim(),
+            consultation_fee,
+            room.trim()
+        );
+
+        res.status(201).json({
+            id,
+            name: name.trim(),
+            specialty: specialty.trim(),
+            consultation_fee,
+            room: room.trim()
+        });
     } catch (error) {
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
-exports.getDoctors = async (req, res) => {
+exports.getDoctors = async (req, res, next) => {
     try {
-        res.json(await Doctor.getAll());
+        const doctors = await Doctor.getAll();
+        res.json(doctors);
     } catch (error) {
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
-exports.getDoctor = async (req, res) => {
+exports.getDoctor = async (req, res, next) => {
     try {
         const doctor = await Doctor.getById(req.params.id);
 
@@ -41,19 +55,24 @@ exports.getDoctor = async (req, res) => {
 
         res.json(doctor);
     } catch (error) {
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
-exports.updateDoctor = async (req, res) => {
+exports.updateDoctor = async (req, res, next) => {
     try {
         if (!validDoctor(req.body)) {
             return res.status(400).json({ message: "Invalid doctor details" });
         }
 
         const { name, specialty, consultation_fee, room } = req.body;
+
         const updated = await Doctor.update(
-            req.params.id, name.trim(), specialty.trim(), consultation_fee, room.trim()
+            req.params.id,
+            name.trim(),
+            specialty.trim(),
+            consultation_fee,
+            room.trim()
         );
 
         if (!updated) {
@@ -62,11 +81,11 @@ exports.updateDoctor = async (req, res) => {
 
         res.json({ message: "Doctor updated successfully" });
     } catch (error) {
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
-exports.deleteDoctor = async (req, res) => {
+exports.deleteDoctor = async (req, res, next) => {
     try {
         const deleted = await Doctor.remove(req.params.id);
 
@@ -76,10 +95,6 @@ exports.deleteDoctor = async (req, res) => {
 
         res.json({ message: "Doctor deleted successfully" });
     } catch (error) {
-        res.status(error.code === "ER_ROW_IS_REFERENCED_2" ? 409 : 500).json({
-            message: error.code === "ER_ROW_IS_REFERENCED_2"
-                ? "Cannot delete doctor with appointments"
-                : "Server error"
-        });
+        next(error);
     }
 };
