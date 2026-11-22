@@ -1,0 +1,13 @@
+{
+  "title": "MediBook Patient Feedback",
+  "instructions": "Please share your experience with our clinic by answering the five questions below.",
+  "questions": [
+    "How would you describe your overall experience with our clinic?",
+    "What did you think about the appointment booking process?",
+    "How satisfied were you with the care provided by your doctor?",
+    "What challenges did you experience during your visit?",
+    "What improvements would you recommend for our services?"
+  ],
+  "submit": "Submit Feedback",
+  "dateLabel": "Date"
+}

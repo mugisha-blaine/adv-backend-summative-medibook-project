@@ -1,0 +1,13 @@
+{
+  "title": "Avis des patients MediBook",
+  "instructions": "Veuillez partager votre expérience dans notre clinique en répondant aux cinq questions ci-dessous.",
+  "questions": [
+    "Comment décririez-vous votre expérience globale dans notre clinique ?",
+    "Que pensez-vous du processus de prise de rendez-vous ?",
+    "Dans quelle mesure êtes-vous satisfait des soins fournis par votre médecin ?",
+    "Quelles difficultés avez-vous rencontrées lors de votre visite ?",
+    "Quelles améliorations recommanderiez-vous pour nos services ?"
+  ],
+  "submit": "Envoyer les commentaires",
+  "dateLabel": "Date"
+}
