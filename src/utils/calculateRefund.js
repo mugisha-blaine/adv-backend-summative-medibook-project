@@ -1,10 +1,9 @@
-const calculateRefund = (appointmentTime, fee) => {
+const calculateRefund = (appointmentTime, fee, now = Date.now()) => {
     const appointmentDate = new Date(
         appointmentTime.replace(" ", "T") + "+02:00"
     );
 
-    const hoursRemaining =
-        (appointmentDate.getTime() - Date.now()) / 3600000;
+    const hoursRemaining = (appointmentDate.getTime() - now) / 3600000;
 
     if (hoursRemaining > 48) {
         return Number(fee);
