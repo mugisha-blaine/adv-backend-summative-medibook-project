@@ -19,7 +19,6 @@ app.use("/reports", reportRoutes);
 app.use("/feedback", feedbackRoutes);
 app.use("/patients", patientRoutes);
 app.use("/appointments", appointmentRoutes);
-app.use(errorHandler);
 
 app.get("/", async (req, res) => {
     try {

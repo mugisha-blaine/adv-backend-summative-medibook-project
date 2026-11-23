@@ -38,6 +38,14 @@ async function processWaitlist(key) {
         );
 
         if (alreadyBooked) {
+            await redis.rPush("notifications:pending", JSON.stringify({
+                patient_id,
+                appointment_id: (await Appointment.getBookingId(
+                    patient_id, doctor_id, appointment_time
+                ))
+            }));
+
+
             await redis.lPop(key);
             return;
         }
@@ -52,8 +60,6 @@ async function processWaitlist(key) {
             patient_id, doctor_id, appointment_time
         );
 
-        await redis.lPop(key);
-
         console.log(`Promoted patient ${patient_id} to appointment ${booking.id}`);
 
         void auditLogger("WAITLIST_PROMOTED", {
@@ -62,21 +68,50 @@ async function processWaitlist(key) {
             doctor_id,
             appointment_time
         });
-        void sendNotification(patient_id, booking.id);
-        
+        await redis.rPush("notifications:pending", JSON.stringify({
+            patient_id,
+            appointment_id: booking.id
+        }));
+
+        await redis.lPop(key);
+
     } catch (error) {
         console.error("Waitlist promotion failed:", error.message);
         // Keep the patient in Redis so promotion can be retried.
     } finally {
-        await redis.eval(
-            `if redis.call("GET", KEYS[1]) == ARGV[1] then
+        try {
+            await redis.eval(
+                `if redis.call("GET", KEYS[1]) == ARGV[1] then
          return redis.call("DEL", KEYS[1])
        end
        return 0`,
-            { keys: [lockKey], arguments: [token] }
-        );
+                { keys: [lockKey], arguments: [token] }
+            );
+        } catch (error) {
+            console.error("Redis lock cleanup failed:", error.message);
+        }
     }
 }
+
+
+async function processNotifications() {
+    const key = "notifications:pending";
+    const job = await redis.lIndex(key, 0);
+
+    if (!job) return;
+
+    try {
+        const { patient_id, appointment_id } = JSON.parse(job);
+
+        await sendNotification(patient_id, appointment_id);
+        await redis.lPop(key);
+
+        console.log(`Notification processed for appointment ${appointment_id}`);
+    } catch (error) {
+        console.error("Notification processing failed:", error.message);
+    }
+}
+
 
 async function startWorker() {
     while (!redis.isReady) {
@@ -87,6 +122,7 @@ async function startWorker() {
 
     while (true) {
         try {
+            await processNotifications();
             for await (const batch of redis.scanIterator({
                 MATCH: "waitlist:*",
                 COUNT: 100

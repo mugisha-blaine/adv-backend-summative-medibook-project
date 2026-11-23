@@ -27,3 +27,21 @@ exports.getBusyDays = async (req, res, next) => {
         next(error);
     }
 };
+
+
+exports.getDoctorDetails = async (req, res, next) => {
+    try {
+        const report = await Report.getDoctorDetails(req.params.id);
+
+        if (!report) {
+            return res.status(404).json({
+                message: "Doctor not found"
+            });
+        }
+
+        res.json(report);
+    } catch (error) {
+        next(error);
+    }
+};
+

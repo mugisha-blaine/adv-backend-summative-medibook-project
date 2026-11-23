@@ -8,7 +8,7 @@ const auditLogger = require("../utils/auditLogger");
 
 exports.bookAppointment = async (req, res, next) => {
     try {
-        const { patient_id, doctor_id, appointment_time } = req.body;
+        const { patient_id, doctor_id, appointment_time } = req.body || {};
 
         if (!Number.isSafeInteger(patient_id) || patient_id <= 0 ||
             !Number.isSafeInteger(doctor_id) || doctor_id <= 0) {
@@ -33,29 +33,37 @@ exports.bookAppointment = async (req, res, next) => {
             return res.status(404).json({ message: "Doctor not found" });
         }
 
-        const id = await Appointment.create(
+        const booking = await Appointment.create(
             patient_id,
             doctor_id,
             appointment_time,
-            doctor.consultation_fee
         );
 
         void auditLogger("BOOKING_CREATED", {
-            appointment_id: id,
+            appointment_id: booking.id,
             patient_id,
             doctor_id,
             appointment_time
         });
 
+        try {
+            await redis.rPush("notifications:pending", JSON.stringify({
+                patient_id,
+                appointment_id: booking.id
+            }));
+        } catch (error) {
+            console.error("Notification queue failed:", error.message);
+        }
+
         res.status(201).json({
             message: "Appointment booked successfully",
             appointment: {
-                id,
+                id: booking.id,
                 patient_id,
                 doctor_id,
                 appointment_time,
                 status: "booked",
-                fee_paid: doctor.consultation_fee
+                fee_paid: booking.fee_paid
             }
         });
     } catch (error) {
@@ -94,7 +102,7 @@ exports.cancelAppointment = async (req, res, next) => {
 
 exports.joinWaitlist = async (req, res, next) => {
     try {
-        const { patient_id, doctor_id, appointment_time } = req.body;
+        const { patient_id, doctor_id, appointment_time } = req.body || {};
 
         if (!Number.isSafeInteger(patient_id) || patient_id <= 0 ||
             !Number.isSafeInteger(doctor_id) || doctor_id <= 0) {

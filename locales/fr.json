@@ -1,12 +1,12 @@
 {
-  "title": "Avis des patients MediBook",
-  "instructions": "Veuillez partager votre expérience dans notre clinique en répondant aux cinq questions ci-dessous.",
+  "title": "Évaluation du cours de développement backend",
+  "instructions": "Veuillez donner votre avis sur le cours de développement backend en répondant aux cinq questions ci-dessous.",
   "questions": [
-    "Comment décririez-vous votre expérience globale dans notre clinique ?",
-    "Que pensez-vous du processus de prise de rendez-vous ?",
-    "Dans quelle mesure êtes-vous satisfait des soins fournis par votre médecin ?",
-    "Quelles difficultés avez-vous rencontrées lors de votre visite ?",
-    "Quelles améliorations recommanderiez-vous pour nos services ?"
+    "Quel sujet de ce cours avez-vous trouvé le plus difficile, et pourquoi ?",
+    "Décrivez un concept que vous n'avez compris qu'après les travaux pratiques. Qu'est-ce qui vous a permis de le comprendre ?",
+    "Comment votre approche de la conception des bases de données ou des API a-t-elle évolué depuis le début du trimestre ?",
+    "Qu'amélioreriez-vous dans la manière dont ce cours a été enseigné ou évalué ?",
+    "Comment envisagez-vous d'appliquer à l'avenir ce que vous avez appris dans ce cours ?"
   ],
   "submit": "Envoyer les commentaires",
   "dateLabel": "Date"

@@ -1,12 +1,12 @@
 {
-  "title": "MediBook Patient Feedback",
-  "instructions": "Please share your experience with our clinic by answering the five questions below.",
+  "title": "Backend Development Course Feedback",
+  "instructions": "Please share your feedback about the Backend Development course by answering the five questions below.",
   "questions": [
-    "How would you describe your overall experience with our clinic?",
-    "What did you think about the appointment booking process?",
-    "How satisfied were you with the care provided by your doctor?",
-    "What challenges did you experience during your visit?",
-    "What improvements would you recommend for our services?"
+    "Which topic in this course did you find most challenging, and why?",
+    "Describe one concept you understood only after the practical assignments. What made it click?",
+    "How has your approach to designing databases or APIs changed since the start of the trimester?",
+    "What would you improve about how this course was taught or assessed?",
+    "How do you plan to apply what you learned in this course going forward?"
   ],
   "submit": "Submit Feedback",
   "dateLabel": "Date"

@@ -1,7 +1,7 @@
 const db = require("../config/db");
 
 exports.getDoctorStats = async () => {
-    const [rows] = await db.execute(`
+  const [rows] = await db.execute(`
     SELECT
       d.id,
       d.name,
@@ -23,7 +23,7 @@ exports.getDoctorStats = async () => {
     ORDER BY d.id
   `);
 
-    return rows;
+  return rows;
 };
 
 
@@ -65,5 +65,53 @@ exports.getBusyDays = async () => {
   `);
 
   return rows;
+};
+
+
+exports.getDoctorDetails = async (id) => {
+  const [doctors] = await db.execute(
+    `SELECT d.id, d.name, d.specialty,
+       COUNT(a.id) AS total_appointments,
+       COALESCE(SUM(a.fee_paid - a.refund_amount), 0)
+         AS net_revenue,
+       COUNT(CASE
+         WHEN a.status = 'booked'
+         AND a.appointment_time >= UTC_TIMESTAMP() + INTERVAL 2 HOUR
+         THEN 1
+       END) AS upcoming_appointments
+     FROM doctors d
+     LEFT JOIN appointments a ON d.id = a.doctor_id
+     WHERE d.id = ?
+     GROUP BY d.id, d.name, d.specialty`,
+    [id]
+  );
+
+  if (!doctors.length) return null;
+
+  const [daily] = await db.execute(
+    `WITH RECURSIVE days AS (
+       SELECT DATE(UTC_TIMESTAMP() + INTERVAL 2 HOUR) AS day
+       UNION ALL
+       SELECT day + INTERVAL 1 DAY
+       FROM days
+       WHERE day < DATE(UTC_TIMESTAMP() + INTERVAL 2 HOUR)
+         + INTERVAL 6 DAY
+     )
+     SELECT
+       DATE_FORMAT(days.day, '%Y-%m-%d') AS date,
+       COUNT(a.id) AS appointments,
+       ROUND(COUNT(a.id) / 12 * 100, 2) AS utilization_percent
+     FROM days
+     LEFT JOIN appointments a
+       ON a.doctor_id = ?
+       AND a.status = 'booked'
+       AND a.appointment_time >= days.day
+       AND a.appointment_time < days.day + INTERVAL 1 DAY
+     GROUP BY days.day
+     ORDER BY days.day`,
+    [id]
+  );
+
+  return { ...doctors[0], daily };
 };
 
