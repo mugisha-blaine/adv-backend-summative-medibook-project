@@ -223,6 +223,7 @@ Replace `14` with the actual appointment ID. No request body is needed.
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | `GET` | `/reports/doctors` | Doctor totals, active bookings, net fee revenue and upcoming bookings |
+| `GET` | `/reports/doctors/:id` | One doctor’s statistics and seven-day utilization, including days with no bookings |
 | `GET` | `/reports/daily` | Active bookings and utilization by doctor/day for the current seven-calendar-day window |
 | `GET` | `/reports/busy-days` | Doctor/date combinations above 80% of capacity |
 
@@ -269,11 +270,9 @@ When a slot is occupied or a doctor's day has reached capacity, a patient can ca
 
 The independently run `worker.js` checks the queues for newly available slots. It attempts to promote the first eligible patient through the same MySQL booking rules. If MySQL rejects a promotion, the queued patient is retained for another attempt. A Redis lock reduces the risk of two workers processing the same queue at once.
 
-After a successful promotion, the worker records the promotion and **simulates** an email/SMS confirmation in the audit log. No message is delivered to a real phone number or email address.
+After a successful promotion, the worker records the event and adds a notification job to the Redis `notifications:pending` list. Normal bookings also enqueue notification jobs. The separate worker processes these jobs and records simulated email/SMS confirmations in `logs/audit.log`. No real messages are sent.
 
-Every confirmed appointment creates a notification job in Redis.
-The separate worker processes these jobs and records simulated
-SMS/email confirmations in the audit log. No real messages are sent.
+The queue and MySQL transaction are separate operations: a booking can succeed even if Redis is unavailable. This implementation does not guarantee exactly-once notification processing.
 
 
 ## 10. Unit Tests — Part F
@@ -289,7 +288,7 @@ Run:
 npm test
 ```
 
-The test files target 12 assertions in total. Verify the latest local run passes before submission.
+The two Jest suites contain 12 tests. The latest local `npm test` run reported 12 passed tests in 2 passed suites. This verifies the tested utility functions; live MySQL/Redis workflows should also be demonstrated.
 
 ## 11. Localization — Part G
 
@@ -299,7 +298,7 @@ The `/feedback` route renders a form with text supplied by `locales/en.json` or 
 
 ### Part C — REST API, database transactions and reporting
 
-**REST and layers.** Routes map HTTP methods and URLs to controllers; controllers validate inputs and apply business rules; models contain the SQL. This keeps responsibilities separate and supports maintenance. Queries use `mysql2` placeholders rather than concatenating client input into SQL.
+**REST and layers.** Routes map HTTP methods and URLs to controllers; controllers validate inputs and apply business rules; models contain the SQL. This keeps responsibilities separate and supports maintenance. Queries use `mysql2` placeholders rather than concatenating client input into SQL. The root health-check query is also delegated to a model function in the final local code.
 
 **Booking and concurrency.** Future-date and clinic-hour validation happens before booking. A MySQL transaction locks the doctor row before checking the 12-appointment daily cap and inserting a booking, helping serialize competing requests for that doctor. The database-level unique constraint is a second protection against identical active slots.
 
@@ -313,4 +312,4 @@ The logger uses non-blocking filesystem operations so disk writes do not block r
 
 ### Part E — Redis queue and worker
 
-Redis lists preserve waiting order without adding tables to the three-entity relational schema. A separate worker handles promotion so the API can respond without performing queue processing inside an HTTP request. Failed bookings remain on the waitlist for retry, and simulated notifications avoid external SMS/email credentials. A dedicated confirmation-job queue is still needed to satisfy the requirement that **every confirmed appointment** enqueue a worker-processed notification.
+Redis lists preserve waiting order without adding tables to the three-entity relational schema. A separate worker handles promotion so the API can respond without performing queue processing inside an HTTP request. Failed promotions remain on the waitlist for retry. Confirmed bookings are added to a dedicated `notifications:pending` Redis list for worker processing. The worker simulates notifications by writing audit-log entries, without requiring external SMS/email credentials. Redis queueing occurs outside the MySQL booking transaction, so a Redis failure can prevent a notification job from being added even when the booking succeeds.

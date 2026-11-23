@@ -11,7 +11,7 @@ const sendNotification = async (patientId, appointmentId) => {
     appointment_id: appointmentId,
     message,
     simulated: true
-  });
+  }, true);
 };
 
 module.exports = sendNotification;

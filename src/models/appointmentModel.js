@@ -207,4 +207,7 @@ exports.getBookingId = async (patientId, doctorId, appointmentTime) => {
   return rows[0]?.id;
 };
 
+exports.checkDatabase = async () => {
+  await db.query("SELECT 1");
+};
 

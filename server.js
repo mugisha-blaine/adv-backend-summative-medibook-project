@@ -2,7 +2,7 @@
 require("dotenv").config();
 
 const express = require("express");
-const db = require("./src/config/db");
+const Appointment = require("./src/models/appointmentModel");
 const patientRoutes = require("./src/routes/patientRoutes");
 const doctorRoutes = require("./src/routes/doctorRoutes");
 const feedbackRoutes = require("./src/routes/feedbackRoutes");
@@ -22,7 +22,7 @@ app.use("/appointments", appointmentRoutes);
 
 app.get("/", async (req, res) => {
     try {
-        await db.query("SELECT 1");
+        await Appointment.checkDatabase();
         res.json({ message: "MediBook API is running", database: "connected" });
     } catch (error) {
         res.status(500).json({ message: "Database connection failed" });
