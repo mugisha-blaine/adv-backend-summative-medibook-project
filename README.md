@@ -1,3 +1,5 @@
+# Video Link: https://youtu.be/6P3ECI0k9nM
+
 # MediBook — Clinic Appointment System
 
 A RESTful backend for managing clinic patients, doctors, appointment bookings, cancellations, reports, and waiting lists. Built with **Node.js**, **Express**, **MySQL**, and **Redis** for the Advanced Backend Development summative assessment.
