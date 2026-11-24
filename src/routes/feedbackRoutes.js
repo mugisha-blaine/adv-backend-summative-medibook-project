@@ -20,7 +20,7 @@ router.get("/", (req, res) => {
     <div class="question">
       <label for="q${index + 1}">${index + 1}. ${question}</label>
       <textarea id="q${index + 1}" name="q${index + 1}"
-        rows="4" required></textarea>
+        rows="4" required>${content.answers[index]}</textarea>
     </div>
   `).join("");
 
